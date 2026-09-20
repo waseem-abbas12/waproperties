@@ -29,21 +29,24 @@
           <h1 class="text-lg font-bold text-white flex items-center gap-2">
             PrimeNest Properties <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">waproperties</span>
           </h1>
-          <p class="text-xs text-slate-400">Production n8n WhatsApp AI Lead Qualification Agent</p>
+          <p class="text-xs text-slate-400">WhatsApp Real Estate AI Agent (English &amp; Roman Urdu)</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <a href="/waproperties_workflow.json" download class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition">
-          <i class="fa-solid fa-download text-emerald-400"></i> Download n8n Workflow
+        <button onclick="openApiKeyModal()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition" title="Optional: Use your OpenAI API Key for Live GPT-4o">
+          <i class="fa-solid fa-key text-amber-400"></i> <span id="apiKeyBtnLabel">Custom API Key</span>
+        </button>
+        <a href="/waproperties_workflow.json" download class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition">
+          <i class="fa-solid fa-download text-emerald-400"></i> n8n Workflow
         </a>
         <a href="#properties-section" class="px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition">
-          <i class="fa-solid fa-list-check"></i> Property Listings
+          <i class="fa-solid fa-list-check"></i> Properties
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Hero & Main Workspace -->
+  <!-- Main Workspace -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
@@ -65,11 +68,11 @@
                   <span class="font-semibold text-sm text-white">PrimeNest Properties AI</span>
                   <i class="fa-solid fa-circle-check text-xs text-emerald-400" title="Verified Business"></i>
                 </div>
-                <p class="text-xs text-emerald-400 font-medium">Official WhatsApp Concierge • Online</p>
+                <p class="text-xs text-emerald-400 font-medium">Bilingual Concierge (Roman Urdu &amp; English) • Online</p>
               </div>
             </div>
-            <div class="flex items-center gap-3 text-slate-400 text-sm">
-              <button onclick="resetChat()" class="hover:text-white text-xs px-2 py-1 bg-slate-800 rounded border border-slate-700" title="Clear Conversation">
+            <div class="flex items-center gap-2 text-slate-400 text-sm">
+              <button onclick="resetChat()" class="hover:text-white text-xs px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700" title="Clear Conversation">
                 <i class="fa-solid fa-rotate-right mr-1"></i> Reset
               </button>
             </div>
@@ -81,7 +84,7 @@
               <i class="fa-solid fa-microchip animate-pulse"></i>
               <span id="toolBannerText">Executing tool...</span>
             </span>
-            <span class="text-slate-400 font-mono">Zero Hallucination Guardrail Active</span>
+            <span class="text-slate-400 font-mono text-[10px]">Zero Hallucination Guardrail Active</span>
           </div>
 
           <!-- Chat Message Container -->
@@ -90,35 +93,38 @@
             <div class="flex justify-start">
               <div class="wa-bubble-in max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-slate-200 shadow-md border border-slate-700/50">
                 <p class="font-semibold text-emerald-400 text-xs mb-1">PrimeNest Concierge</p>
-                <p>Hello! Welcome to <strong>PrimeNest Properties (waproperties)</strong>. 🏡</p>
+                <p>Assalam o Alaikum! Welcome to <strong>PrimeNest Properties (waproperties)</strong>. 🏡</p>
                 <p class="mt-1.5 text-slate-300 text-xs leading-relaxed">
-                  I am your dedicated AI real estate advisor. Looking to <strong>buy</strong> or <strong>rent</strong>? Feel free to ask about our verified properties in DHA, Gulberg, or Bahria Town!
+                  Main aapka dedicated Real Estate Advisor hoon. Aap mujhse **Roman Urdu** ya **English** mein baat kar sakte hain. DHA, Gulberg, ya Bahria Town mein khareedna (Buy) hai ya kiraye (Rent) par lena hai?
                 </p>
                 <span class="block text-[10px] text-slate-400 text-right mt-1">07:30 AM</span>
               </div>
             </div>
           </div>
 
-          <!-- Quick Test Prompt Chips -->
-          <div class="p-2.5 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
-            <span class="text-[11px] text-slate-500 font-bold uppercase shrink-0">Try Client Flow:</span>
-            <button onclick="sendQuickPrompt('Hi, I\'m looking for a 3-bedroom house in DHA.')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-300 hover:text-white transition">
-              1. 3-Bed House DHA
+          <!-- Quick Test Prompt Chips in Roman Urdu & English -->
+          <div class="p-2.5 bg-slate-950/90 border-t border-slate-800 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
+            <span class="text-[10px] text-slate-400 font-bold uppercase shrink-0">Quick Urdu Prompts:</span>
+            <button onclick="sendQuickPrompt('salam, mujhe DHA me 3 kamray ka makan chahiye')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 hover:text-white transition">
+              1. Salam, DHA 3-Bed
             </button>
-            <button onclick="sendQuickPrompt('My budget is around 5 crore.')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-300 hover:text-white transition">
+            <button onclick="sendQuickPrompt('mera budget 5 crore hai aur khareedna hai')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 hover:text-white transition">
               2. Budget: 5 Crore
             </button>
-            <button onclick="sendQuickPrompt('I want to see the house this Saturday.')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-300 hover:text-white transition">
-              3. Saturday Viewing
+            <button onclick="sendQuickPrompt('main saturday ko dekhna chahta hoon visit karwa dain')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 hover:text-white transition">
+              3. Saturday Visit
             </button>
-            <button onclick="sendQuickPrompt('Do you have a 10-bedroom castle on Mars?')" class="shrink-0 px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-800/40 rounded-full text-rose-300 transition" title="Tests strict anti-hallucination guardrails">
-              🛡️ Test Anti-Hallucination
+            <button onclick="sendQuickPrompt('is ghar me solar system aur gas hai?')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-200 hover:text-white transition">
+              4. Solar &amp; Features
+            </button>
+            <button onclick="sendQuickPrompt('chand par 10-bed qila chahiye')" class="shrink-0 px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-800/40 rounded-full text-rose-300 transition" title="Anti-hallucination test">
+              🛡️ Anti-Hallucination
             </button>
           </div>
 
           <!-- Input Box -->
           <div class="bg-[#202c33] p-3 flex items-center gap-2 border-t border-slate-800">
-            <input id="userInput" type="text" placeholder="Type a message (e.g. 3-bed in DHA, budget 5 crore)..." 
+            <input id="userInput" type="text" placeholder="Roman Urdu ya English mein type karein (e.g. mujhe dha me 3 bed ghar chahiye)..." 
                    class="flex-1 bg-[#2a3942] text-white placeholder-slate-400 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:outline-none focus:border-emerald-500 transition"
                    onkeydown="if(event.key === 'Enter') handleSend()" />
             <button onclick="handleSend()" class="w-10 h-10 rounded-xl wa-green hover:bg-[#008f70] text-slate-950 flex items-center justify-center shadow font-bold transition">
@@ -159,7 +165,7 @@ Matched Property: PN-103
 Lead Status: Qualified</div>
           
           <p class="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
-            <i class="fa-solid fa-circle-info text-emerald-400"></i> Dispatched via n8n directly to the Sales Team WhatsApp & CRM.
+            <i class="fa-solid fa-circle-info text-emerald-400"></i> Dispatched via n8n directly to Sales Management on WhatsApp.
           </p>
         </div>
 
@@ -219,8 +225,36 @@ Lead Status: Qualified</div>
 
   </main>
 
+  <!-- Optional API Key Modal -->
+  <div id="apiKeyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400"></i> OpenAI API Key (Optional)
+        </h3>
+        <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+        By default, the simulator runs the built-in bilingual Urdu/English AI engine. If you want to connect live OpenAI GPT-4o, enter your API key below:
+      </p>
+      <input id="userApiKeyInput" type="password" placeholder="sk-proj-..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 mb-4 focus:outline-none focus:border-emerald-500" />
+      <div class="flex items-center justify-end gap-2">
+        <button onclick="clearApiKey()" class="px-3 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-950/30">Clear</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-slate-950">Save Key</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let propertiesData = [];
+    let conversationHistory = [];
+    let savedApiKey = localStorage.getItem('primenest_openai_key') || '';
+
+    if (savedApiKey) {
+      document.getElementById('apiKeyBtnLabel').innerText = "API Key Active";
+    }
 
     async function loadProperties() {
       try {
@@ -261,10 +295,11 @@ Lead Status: Qualified</div>
       if (!text) return;
 
       appendMessage(text, 'user');
+      conversationHistory.push({ sender: 'user', text });
       input.value = '';
 
       // Show tool banner
-      showToolBanner('Analyzing inquiry & executing AI Agent tools...');
+      showToolBanner('Inquiry process ho rahi hai aur property tools check ho rahe hain...');
 
       try {
         const res = await fetch('/api/chat', {
@@ -272,8 +307,10 @@ Lead Status: Qualified</div>
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: text,
+            history: conversationHistory,
             senderPhone: '+923001234567',
-            senderName: 'Ali Khan'
+            senderName: 'Ali Khan',
+            apiKey: savedApiKey
           })
         });
 
@@ -285,6 +322,7 @@ Lead Status: Qualified</div>
         }
 
         appendMessage(data.reply, 'ai');
+        conversationHistory.push({ sender: 'ai', text: data.reply });
 
         if (data.salesAlert) {
           document.getElementById('salesAlertDisplay').innerText = data.salesAlert;
@@ -296,7 +334,7 @@ Lead Status: Qualified</div>
 
       } catch (err) {
         hideToolBanner();
-        appendMessage("Error communicating with AI concierge. Please check connection.", 'ai');
+        appendMessage("Rabtay mein masla aa gaya hai. Barah-e-karam dobara koshish karein.", 'ai');
       }
     }
 
@@ -340,6 +378,7 @@ Lead Status: Qualified</div>
         </span>
       `;
       container.appendChild(badge);
+      container.scrollTop = container.scrollHeight;
     }
 
     function showToolBanner(text) {
@@ -371,19 +410,50 @@ Lead Status: Qualified</div>
     }
 
     function resetChat() {
+      conversationHistory = [];
       const container = document.getElementById('chatMessages');
       container.innerHTML = `
         <div class="flex justify-start">
           <div class="wa-bubble-in max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-slate-200 shadow-md border border-slate-700/50">
             <p class="font-semibold text-emerald-400 text-xs mb-1">PrimeNest Concierge</p>
-            <p>Hello! Welcome to <strong>PrimeNest Properties (waproperties)</strong>. 🏡</p>
+            <p>Assalam o Alaikum! Welcome to <strong>PrimeNest Properties (waproperties)</strong>. 🏡</p>
             <p class="mt-1.5 text-slate-300 text-xs leading-relaxed">
-              I am your dedicated AI real estate advisor. Looking to <strong>buy</strong> or <strong>rent</strong>? Feel free to ask about our verified properties in DHA, Gulberg, or Bahria Town!
+              Main aapka dedicated Real Estate Advisor hoon. Aap mujhse **Roman Urdu** ya **English** mein baat kar sakte hain. DHA, Gulberg, ya Bahria Town mein khareedna (Buy) hai ya kiraye (Rent) par lena hai?
             </p>
             <span class="block text-[10px] text-slate-400 text-right mt-1">07:30 AM</span>
           </div>
         </div>
       `;
+    }
+
+    function openApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+      document.getElementById('userApiKeyInput').value = savedApiKey;
+    }
+
+    function closeApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.add('hidden');
+    }
+
+    function saveApiKey() {
+      const val = document.getElementById('userApiKeyInput').value.trim();
+      savedApiKey = val;
+      if (val) {
+        localStorage.setItem('primenest_openai_key', val);
+        document.getElementById('apiKeyBtnLabel').innerText = "API Key Active";
+      } else {
+        localStorage.removeItem('primenest_openai_key');
+        document.getElementById('apiKeyBtnLabel').innerText = "Custom API Key";
+      }
+      closeApiKeyModal();
+    }
+
+    function clearApiKey() {
+      localStorage.removeItem('primenest_openai_key');
+      savedApiKey = '';
+      document.getElementById('userApiKeyInput').value = '';
+      document.getElementById('apiKeyBtnLabel').innerText = "Custom API Key";
+      closeApiKeyModal();
     }
 
     // Initialize
