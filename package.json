@@ -1,0 +1,20 @@
+{
+  "name": "waproperties",
+  "version": "1.0.0",
+  "description": "PrimeNest Properties (waproperties) - WhatsApp AI Lead Qualification Agent & Interactive Hub",
+  "main": "api/chat.js",
+  "scripts": {
+    "test": "node simulate_test.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "real-estate",
+    "ai-agent",
+    "n8n",
+    "lead-qualification",
+    "openai"
+  ],
+  "author": "PrimeNest Properties",
+  "license": "MIT"
+}

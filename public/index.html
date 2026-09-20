@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrimeNest Properties (waproperties) - WhatsApp AI Agent Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .wa-bg { background-color: #0b141a; }
+    .wa-chat-bg { background-color: #0b141a; background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 16px 16px; }
+    .wa-green { background-color: #00a884; }
+    .wa-bubble-in { background-color: #202c33; }
+    .wa-bubble-out { background-color: #005c4b; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-building"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white flex items-center gap-2">
+            PrimeNest Properties <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">waproperties</span>
+          </h1>
+          <p class="text-xs text-slate-400">Production n8n WhatsApp AI Lead Qualification Agent</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/waproperties_workflow.json" download class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition">
+          <i class="fa-solid fa-download text-emerald-400"></i> Download n8n Workflow
+        </a>
+        <a href="#properties-section" class="px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition">
+          <i class="fa-solid fa-list-check"></i> Property Listings
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & Main Workspace -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- LEFT: Live Interactive WhatsApp Simulator (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden flex flex-col h-[750px]">
+          
+          <!-- WhatsApp Phone Header -->
+          <div class="bg-[#202c33] px-4 py-3 flex items-center justify-between border-b border-slate-700">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-white shadow">
+                  <i class="fa-solid fa-house-chimney"></i>
+                </div>
+                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#202c33] rounded-full"></span>
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-semibold text-sm text-white">PrimeNest Properties AI</span>
+                  <i class="fa-solid fa-circle-check text-xs text-emerald-400" title="Verified Business"></i>
+                </div>
+                <p class="text-xs text-emerald-400 font-medium">Official WhatsApp Concierge • Online</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 text-slate-400 text-sm">
+              <button onclick="resetChat()" class="hover:text-white text-xs px-2 py-1 bg-slate-800 rounded border border-slate-700" title="Clear Conversation">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Tool Call Notification Banner -->
+          <div id="toolBanner" class="hidden px-4 py-1.5 bg-emerald-950/60 border-b border-emerald-800/40 text-[11px] text-emerald-300 flex items-center justify-between transition-all">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-microchip animate-pulse"></i>
+              <span id="toolBannerText">Executing tool...</span>
+            </span>
+            <span class="text-slate-400 font-mono">Zero Hallucination Guardrail Active</span>
+          </div>
+
+          <!-- Chat Message Container -->
+          <div id="chatMessages" class="flex-1 wa-chat-bg p-4 overflow-y-auto space-y-3">
+            <!-- Initial Greeting from AI -->
+            <div class="flex justify-start">
+              <div class="wa-bubble-in max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-slate-200 shadow-md border border-slate-700/50">
+                <p class="font-semibold text-emerald-400 text-xs mb-1">PrimeNest Concierge</p>
+                <p>Hello! Welcome to <strong>PrimeNest Properties (waproperties)</strong>. 🏡</p>
+                <p class="mt-1.5 text-slate-300 text-xs leading-relaxed">
+                  I am your dedicated AI real estate advisor. Looking to <strong>buy</strong> or <strong>rent</strong>? Feel free to ask about our verified properties in DHA, Gulberg, or Bahria Town!
+                </p>
+                <span class="block text-[10px] text-slate-400 text-right mt-1">07:30 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Test Prompt Chips -->
+          <div class="p-2.5 bg-slate-950/80 border-t border-slate-800 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
+            <span class="text-[11px] text-slate-500 font-bold uppercase shrink-0">Try Client Flow:</span>
+            <button onclick="sendQuickPrompt('Hi, I\'m looking for a 3-bedroom house in DHA.')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-300 hover:text-white transition">
+              1. 3-Bed House DHA
+            </button>
+            <button onclick="sendQuickPrompt('My budget is around 5 crore.')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-300 hover:text-white transition">
+              2. Budget: 5 Crore
+            </button>
+            <button onclick="sendQuickPrompt('I want to see the house this Saturday.')" class="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-slate-300 hover:text-white transition">
+              3. Saturday Viewing
+            </button>
+            <button onclick="sendQuickPrompt('Do you have a 10-bedroom castle on Mars?')" class="shrink-0 px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-800/40 rounded-full text-rose-300 transition" title="Tests strict anti-hallucination guardrails">
+              🛡️ Test Anti-Hallucination
+            </button>
+          </div>
+
+          <!-- Input Box -->
+          <div class="bg-[#202c33] p-3 flex items-center gap-2 border-t border-slate-800">
+            <input id="userInput" type="text" placeholder="Type a message (e.g. 3-bed in DHA, budget 5 crore)..." 
+                   class="flex-1 bg-[#2a3942] text-white placeholder-slate-400 text-sm px-4 py-2.5 rounded-xl border border-transparent focus:outline-none focus:border-emerald-500 transition"
+                   onkeydown="if(event.key === 'Enter') handleSend()" />
+            <button onclick="handleSend()" class="w-10 h-10 rounded-xl wa-green hover:bg-[#008f70] text-slate-950 flex items-center justify-center shadow font-bold transition">
+              <i class="fa-solid fa-paper-plane text-sm"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: Real-time Sales Alerts & Leads Dashboard (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col space-y-6">
+
+        <!-- Sales Team Instant WhatsApp Alert Box -->
+        <div class="rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-950/20 to-slate-900 p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+              <h3 class="font-bold text-sm text-amber-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-fire text-amber-400"></i> Sales Team WhatsApp Dispatch
+              </h3>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Real-time Webhook</span>
+          </div>
+          
+          <div class="rounded-xl bg-slate-950 p-4 border border-slate-800 font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed shadow-inner" id="salesAlertDisplay">🔥 New Qualified Lead
+
+Name: Ali Khan
+WhatsApp: +923001234567
+Requirement: Buy
+Property Type: House
+Bedrooms: 3
+Location: DHA
+Budget: PKR 50,000,000
+Viewing Requested: Saturday
+
+Matched Property: PN-103
+Lead Status: Qualified</div>
+          
+          <p class="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
+            <i class="fa-solid fa-circle-info text-emerald-400"></i> Dispatched via n8n directly to the Sales Team WhatsApp & CRM.
+          </p>
+        </div>
+
+        <!-- CRM Qualified Leads Table -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-xl flex-1 flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-address-book text-emerald-400"></i> CRM / Google Sheets Store
+            </h3>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">waproperties_leads</span>
+          </div>
+
+          <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400">
+                  <th class="pb-2">Lead / Name</th>
+                  <th class="pb-2">Requirement</th>
+                  <th class="pb-2">Budget</th>
+                  <th class="pb-2">Matched</th>
+                  <th class="pb-2">Status</th>
+                </tr>
+              </thead>
+              <tbody id="leadsTableBody" class="divide-y divide-slate-800 text-slate-300 font-mono text-[11px]">
+                <tr>
+                  <td class="py-2.5 font-sans font-medium text-white">Ali Khan<br><span class="text-slate-500 text-[10px]">+923001234567</span></td>
+                  <td class="py-2.5">Buy (3-Bed House)</td>
+                  <td class="py-2.5 text-emerald-400">5 Crore</td>
+                  <td class="py-2.5"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-300">PN-103</span></td>
+                  <td class="py-2.5"><span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px]">Qualified</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Property Catalog Section -->
+    <section id="properties-section" class="mt-12 pt-8 border-t border-slate-800">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-house-circle-check text-emerald-400"></i> PrimeNest Verified Database
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Verified properties accessible to the AI Agent via <code>search_properties</code></p>
+        </div>
+        <span class="text-xs px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">6 Certified Properties</span>
+      </div>
+
+      <div id="propertyCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let propertiesData = [];
+
+    async function loadProperties() {
+      try {
+        const res = await fetch('/api/properties');
+        const data = await res.json();
+        propertiesData = data.properties || [];
+        renderPropertyCards(propertiesData);
+      } catch (e) {
+        console.error("Error loading properties", e);
+      }
+    }
+
+    function renderPropertyCards(props) {
+      const grid = document.getElementById('propertyCardsGrid');
+      grid.innerHTML = props.map(p => `
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4 hover:border-emerald-500/40 transition">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-xs font-bold">${p.property_id}</span>
+            <span class="text-xs text-slate-400">${p.property_type} • For ${p.purpose}</span>
+          </div>
+          <h4 class="font-bold text-sm text-white line-clamp-1 mb-1">${p.title}</h4>
+          <p class="text-xs text-emerald-400 font-semibold mb-2">${p.price_display}</p>
+          <div class="text-[11px] text-slate-400 space-y-1 mb-3">
+            <p><i class="fa-solid fa-location-dot text-slate-500 mr-1.5"></i>${p.location}</p>
+            <p><i class="fa-solid fa-bed text-slate-500 mr-1.5"></i>${p.bedrooms} Beds • ${p.bathrooms} Baths • ${p.area}</p>
+          </div>
+          <div class="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400">
+            <span class="text-slate-500 font-semibold block">Official Viewing Windows:</span>
+            ${p.viewing_slots.map(s => `<span class="inline-block px-1.5 py-0.5 mt-1 rounded bg-slate-800 text-slate-300 mr-1">${s}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function handleSend() {
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage(text, 'user');
+      input.value = '';
+
+      // Show tool banner
+      showToolBanner('Analyzing inquiry & executing AI Agent tools...');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            senderPhone: '+923001234567',
+            senderName: 'Ali Khan'
+          })
+        });
+
+        const data = await res.json();
+        hideToolBanner();
+
+        if (data.toolCalled) {
+          showToolCallBadge(data.toolCalled);
+        }
+
+        appendMessage(data.reply, 'ai');
+
+        if (data.salesAlert) {
+          document.getElementById('salesAlertDisplay').innerText = data.salesAlert;
+        }
+
+        if (data.qualifiedLead) {
+          addLeadToTable(data.qualifiedLead);
+        }
+
+      } catch (err) {
+        hideToolBanner();
+        appendMessage("Error communicating with AI concierge. Please check connection.", 'ai');
+      }
+    }
+
+    function appendMessage(text, sender) {
+      const container = document.getElementById('chatMessages');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const div = document.createElement('div');
+      div.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+      const formatted = text.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      div.innerHTML = sender === 'user' 
+        ? `
+          <div class="wa-bubble-out max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm text-white shadow-md">
+            <p>${formatted}</p>
+            <span class="block text-[10px] text-emerald-200 text-right mt-1 flex items-center justify-end gap-1">
+              ${time} <i class="fa-solid fa-check-double text-sky-400 text-[10px]"></i>
+            </span>
+          </div>
+        `
+        : `
+          <div class="wa-bubble-in max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-slate-200 shadow-md border border-slate-700/50">
+            <p class="font-semibold text-emerald-400 text-xs mb-1">PrimeNest Concierge</p>
+            <p class="text-xs leading-relaxed text-slate-200">${formatted}</p>
+            <span class="block text-[10px] text-slate-400 text-right mt-1">${time}</span>
+          </div>
+        `;
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showToolCallBadge(toolName) {
+      const container = document.getElementById('chatMessages');
+      const badge = document.createElement('div');
+      badge.className = 'flex justify-center my-1';
+      badge.innerHTML = `
+        <span class="px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/50 text-[11px] text-emerald-300 flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-wrench text-[10px]"></i> Tool executed: <strong>${toolName}</strong>
+        </span>
+      `;
+      container.appendChild(badge);
+    }
+
+    function showToolBanner(text) {
+      const b = document.getElementById('toolBanner');
+      document.getElementById('toolBannerText').innerText = text;
+      b.classList.remove('hidden');
+    }
+
+    function hideToolBanner() {
+      document.getElementById('toolBanner').classList.add('hidden');
+    }
+
+    function sendQuickPrompt(txt) {
+      document.getElementById('userInput').value = txt;
+      handleSend();
+    }
+
+    function addLeadToTable(lead) {
+      const tbody = document.getElementById('leadsTableBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-2.5 font-sans font-medium text-white">${lead.name}<br><span class="text-slate-500 text-[10px]">${lead.phone}</span></td>
+        <td class="py-2.5">${lead.requirement} (${lead.bedrooms}-Bed ${lead.propertyType})</td>
+        <td class="py-2.5 text-emerald-400">${lead.budget}</td>
+        <td class="py-2.5"><span class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-300">${lead.matchedProperty}</span></td>
+        <td class="py-2.5"><span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px]">${lead.status}</span></td>
+      `;
+      tbody.prepend(tr);
+    }
+
+    function resetChat() {
+      const container = document.getElementById('chatMessages');
+      container.innerHTML = `
+        <div class="flex justify-start">
+          <div class="wa-bubble-in max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-slate-200 shadow-md border border-slate-700/50">
+            <p class="font-semibold text-emerald-400 text-xs mb-1">PrimeNest Concierge</p>
+            <p>Hello! Welcome to <strong>PrimeNest Properties (waproperties)</strong>. 🏡</p>
+            <p class="mt-1.5 text-slate-300 text-xs leading-relaxed">
+              I am your dedicated AI real estate advisor. Looking to <strong>buy</strong> or <strong>rent</strong>? Feel free to ask about our verified properties in DHA, Gulberg, or Bahria Town!
+            </p>
+            <span class="block text-[10px] text-slate-400 text-right mt-1">07:30 AM</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Initialize
+    loadProperties();
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "tableName": "waproperties_leads",
+  "description": "CRM & Google Sheets schema for qualified WhatsApp leads and appointment requests",
+  "fields": [
+    { "name": "lead_id", "type": "string", "example": "LEAD-2026-001" },
+    { "name": "created_at", "type": "timestamp", "example": "2026-09-20T07:30:00Z" },
+    { "name": "customer_name", "type": "string", "example": "Ali Khan" },
+    { "name": "whatsapp_phone", "type": "string", "example": "+923001234567" },
+    { "name": "requirement_type", "type": "enum", "enum": ["Buy", "Rent"], "example": "Buy" },
+    { "name": "property_type", "type": "string", "example": "House" },
+    { "name": "bedrooms", "type": "number", "example": 3 },
+    { "name": "target_location", "type": "string", "example": "DHA Phase 6" },
+    { "name": "budget_pkr", "type": "number", "example": 50000000 },
+    { "name": "budget_display", "type": "string", "example": "PKR 50,000,000 (5 Crore)" },
+    { "name": "matched_property_id", "type": "string", "example": "PN-103" },
+    { "name": "viewing_requested", "type": "string", "example": "Saturday" },
+    { "name": "viewing_time_slot", "type": "string", "example": "Saturday 11:00 AM - 5:00 PM" },
+    { "name": "financing_needed", "type": "string", "example": "Not required / Self-funded" },
+    { "name": "lead_status", "type": "string", "example": "Qualified" },
+    { "name": "assigned_sales_rep", "type": "string", "example": "Sales Team Alpha" },
+    { "name": "notes", "type": "string", "example": "Customer interested in solid construction house with solar backup in DHA Phase 6." }
+  ],
+  "sample_records": [
+    {
+      "lead_id": "LEAD-2026-001",
+      "created_at": "2026-09-20T07:30:00Z",
+      "customer_name": "Ali Khan",
+      "whatsapp_phone": "+923001234567",
+      "requirement_type": "Buy",
+      "property_type": "House",
+      "bedrooms": 3,
+      "target_location": "DHA Phase 6",
+      "budget_pkr": 50000000,
+      "budget_display": "PKR 50,000,000",
+      "matched_property_id": "PN-103",
+      "viewing_requested": "Saturday",
+      "viewing_time_slot": "Saturday 11:00 AM - 5:00 PM",
+      "financing_needed": "No",
+      "lead_status": "Qualified",
+      "assigned_sales_rep": "Sales Team Alpha",
+      "notes": "Requested viewing for PN-103 on Saturday."
+    }
+  ]
+}

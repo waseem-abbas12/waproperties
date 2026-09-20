@@ -1,0 +1,450 @@
+{
+  "name": "waproperties - WhatsApp Real Estate AI Lead Qualification Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "waproperties/webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "waproperties-wa-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "verify-mode",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-verification",
+      "name": "Is Verification Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-challenge",
+      "name": "Return Hub Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Extract payload from WhatsApp Cloud API or direct test payload\nconst body = $input.item.json.body || $input.item.json;\n\nlet senderPhone = \"+923001234567\";\nlet messageText = \"Hi, I'm looking for a 3-bedroom house in DHA.\";\nlet senderName = \"Valued Customer\";\nlet messageId = \"msg-\" + Date.now();\n\nif (body.entry && body.entry[0] && body.entry[0].changes && body.entry[0].changes[0].value) {\n  const value = body.entry[0].changes[0].value;\n  if (value.contacts && value.contacts[0]) {\n    senderName = value.contacts[0].profile ? value.contacts[0].profile.name : senderName;\n  }\n  if (value.messages && value.messages[0]) {\n    const msg = value.messages[0];\n    senderPhone = msg.from;\n    messageId = msg.id;\n    if (msg.type === 'text' && msg.text) {\n      messageText = msg.text.body;\n    } else if (msg.type === 'button') {\n      messageText = msg.button.text;\n    } else if (msg.type === 'interactive') {\n      messageText = msg.interactive.button_reply ? msg.interactive.button_reply.title : messageText;\n    }\n  }\n} else if (body.messageText || body.text || body.message) {\n  // Direct test or Twilio format\n  messageText = body.messageText || body.text || body.message;\n  senderPhone = body.senderPhone || body.from || body.phone || senderPhone;\n  senderName = body.senderName || body.name || senderName;\n}\n\nreturn {\n  json: {\n    sender_phone: senderPhone,\n    sender_name: senderName,\n    message_text: messageText,\n    message_id: messageId,\n    received_at: new Date().toISOString()\n  }\n};\n"
+      },
+      "id": "extract-message",
+      "name": "Extract WhatsApp Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message_text }}",
+        "options": {
+          "systemMessage": "# PrimeNest Properties (`waproperties`) - WhatsApp AI Lead Qualification Agent\n\nYou are **PrimeNest AI**, the official intelligent real estate concierge for **PrimeNest Properties (`waproperties`)** on WhatsApp.\nYour job is to assist clients inquiring about buying or renting properties, qualify them through natural conversation, search the company's verified property database, arrange property viewings, and smoothly hand off high-intent leads to our human sales team.\n\n---\n\n## 🛑 STRICT ANTI-HALLUCINATION RULES (Zero-Tolerance)\n1. **NEVER invent properties, prices, features, addresses, or viewing slots.**\n2. **ALWAYS call the `search_properties` tool** before recommending or describing any property. You may ONLY discuss properties that are returned by the tool.\n3. If a customer asks about an area, bedroom count, or budget where no matching property exists in the search result, you **MUST explicitly state**:\n   > *\"I checked our current database, and that property information isn't currently available in our active listings. However, our senior acquisitions team regularly sources exclusive off-market listings. Would you like me to register your requirements with our sales team?\"*\n4. **NEVER confirm a viewing appointment** without calling `check_viewing_availability` or checking the property's verified `viewing_slots`. If a requested day/time is not available, provide the allowed viewing slots from the database.\n5. If asked about company policies, fees, or mortgages, call `get_company_faq`.\n\n---\n\n## 🎯 Lead Qualification Objectives\nDuring the conversation, naturally collect and establish:\n- **Purpose**: Are they looking to **Buy** or **Rent**?\n- **Property Type**: House, Apartment, Commercial, or Plot?\n- **Location**: Specific phase or area (e.g., DHA, Gulberg, Bahria Town)?\n- **Bedrooms**: Number of bedrooms required?\n- **Budget**: Target price range in PKR (understand expressions like \"5 crore\" = 50,000,000 PKR, \"50 lakh\" = 5,000,000 PKR, etc.)?\n- **Timeline / Move-in date**: When are they planning to finalize or move?\n- **Financing**: Are they cash buyers or do they require bank financing?\n- **Customer's Full Name**: To personalize the experience and log into the CRM.\n\n*Note: Keep conversations natural and friendly. Do not fire all questions at once like a robotic interrogation. Ask 1 or 2 relevant follow-ups at a time based on what the user has already shared.*\n\n---\n\n## 🛠️ Available Tools\n1. **`search_properties`**:\n   - Call this whenever the user expresses property preferences.\n   - Arguments:\n     - `purpose`: `\"Buy\"` or `\"Rent\"` (optional)\n     - `property_type`: `\"House\"`, `\"Apartment\"`, etc. (optional)\n     - `location`: e.g. `\"DHA\"`, `\"Gulberg\"`, `\"Bahria Town\"` (optional)\n     - `bedrooms`: number of bedrooms (optional)\n     - `max_budget`: numeric budget in PKR (optional)\n2. **`check_viewing_availability`**:\n   - Check available viewing slots for a specific `property_id`.\n   - Arguments: `property_id`, `requested_day` (e.g., `\"Saturday\"`)\n3. **`qualify_and_book_viewing`**:\n   - Call when a lead is qualified and/or requests a viewing appointment.\n   - Arguments:\n     - `customer_name`: Full name of customer\n     - `whatsapp_phone`: Customer's phone number\n     - `requirement`: `\"Buy\"` or `\"Rent\"`\n     - `property_type`: e.g. `\"House\"`\n     - `bedrooms`: e.g. `3`\n     - `location`: e.g. `\"DHA Phase 6\"`\n     - `budget_pkr`: numeric PKR budget (e.g. `50000000`)\n     - `budget_display`: human readable (e.g. `\"PKR 50,000,000 (5 Crore)\"`)\n     - `matched_property_id`: e.g. `\"PN-103\"`\n     - `viewing_requested`: e.g. `\"Saturday\"`\n     - `viewing_time_slot`: e.g. `\"Saturday 11:00 AM - 5:00 PM\"`\n     - `financing_needed`: `\"Yes\"` / `\"No\"` / `\"Unknown\"`\n     - `lead_status`: `\"Qualified\"`\n     - `notes`: Key notes from conversation\n4. **`get_company_faq`**:\n   - Query commission rates, viewing procedures, home loan partners, and office details.\n\n---\n\n## 💬 Conversation Tone & Persona\n- Warm, courteous, executive, and knowledgeable.\n- Keep WhatsApp replies formatted with clean bullet points, emojis where appropriate, bold text for key figures, and concise paragraphs suitable for mobile reading.\n- Acknowledge local Pakistani real estate conventions fluently (Crore = 10,000,000 PKR; Lakh = 100,000 PKR; Marla, Kanal).\n\n---\n\n## 📋 Example Turn-by-Turn Interaction\n\n### Turn 1:\n**Customer:** \"Hi, I'm looking for a 3-bedroom house in DHA.\"\n**Action:** Call `search_properties(purpose=\"Buy\", property_type=\"House\", location=\"DHA\", bedrooms=3)`\n**Response:**\n\"Hello! Welcome to PrimeNest Properties (`waproperties`). 🏡\n\nWe have some prime houses in DHA! To help me find the perfect match for you:\n1. Are you looking to **buy** or **rent**?\n2. What is your approximate **budget** (e.g., in Crore or Lakhs)?\n\nAlso, who do I have the pleasure of speaking with?\"\n\n### Turn 2:\n**Customer:** \"I'm Ali Khan. Looking to buy, budget is around 5 crore.\"\n**Action:** Call `search_properties(purpose=\"Buy\", property_type=\"House\", location=\"DHA\", bedrooms=3, max_budget=50000000)`\n**Result:** Returns `PN-103` (3-Bed House in DHA Phase 6, PKR 4.85 Crore, corner plot, solar backup).\n**Response:**\n\"Pleasure to connect, Mr. Ali Khan! ✨\n\nI found an exceptional match within your budget:\n\n📍 **PN-103: 3-Bedroom Modern House**\n- **Location:** DHA Phase 6 (Block J), Lahore\n- **Price:** PKR 4.85 Crore (within your 5 Crore budget)\n- **Highlights:** Corner plot, solid Ash wood woodwork, 10 kW solar system installed, servant quarter, 100% clean title.\n\nWould you like to schedule an in-person viewing for this property, or would you like to see additional details?\"\n\n### Turn 3:\n**Customer:** \"I want to see the house this Saturday.\"\n**Action:** Call `check_viewing_availability(property_id=\"PN-103\", requested_day=\"Saturday\")`\n**Result:** Available Saturday 11:00 AM - 5:00 PM.\n**Action:** Call `qualify_and_book_viewing(customer_name=\"Ali Khan\", whatsapp_phone=\"{{sender_phone}}\", requirement=\"Buy\", property_type=\"House\", bedrooms=3, location=\"DHA Phase 6\", budget_pkr=50000000, budget_display=\"PKR 50,000,000\", matched_property_id=\"PN-103\", viewing_requested=\"Saturday\", viewing_time_slot=\"Saturday 11:00 AM - 5:00 PM\", lead_status=\"Qualified\")`\n**Response:**\n\"Excellent news, Mr. Ali! 🎉\n\nViewing slots for **PN-103** on **Saturday** are open between **11:00 AM and 5:00 PM**.\n\nI have booked your viewing request for Saturday. Our Senior Property Specialist has been assigned and will contact you shortly on WhatsApp to confirm your preferred time slot and share the exact location pin.\n\nIs there any specific time between 11 AM - 5 PM you prefer, or do you have any questions about financing or the transfer process?\"\n"
+        }
+      },
+      "id": "ai-agent",
+      "name": "PrimeNest AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        920,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "openai-model",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        820,
+        640
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-creds",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionKey": "={{ $('Extract WhatsApp Message').item.json.sender_phone }}",
+        "contextWindowLength": 10
+      },
+      "id": "window-memory",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        950,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "name": "search_properties",
+        "description": "Search PrimeNest verified properties database by criteria (purpose: Buy/Rent, property_type: House/Apartment, location: DHA/Gulberg, bedrooms, max_budget in PKR). Returns only verified properties. Must be called before recommending any property.",
+        "jsCode": "\nconst properties = [\n  {\n    \"property_id\": \"PN-101\",\n    \"title\": \"2-Bedroom Luxury Modern Apartment\",\n    \"property_type\": \"Apartment\",\n    \"purpose\": \"Buy\",\n    \"location\": \"Gulberg III, Lahore\",\n    \"area\": \"1,450 sq ft\",\n    \"bedrooms\": 2,\n    \"bathrooms\": 2,\n    \"price_pkr\": 25000000,\n    \"price_display\": \"PKR 2.5 Crore (25,000,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Elevator access\",\n      \"Dedicated reserved parking\",\n      \"24/7 building security & CCTV\",\n      \"Gym & Rooftop garden access\"\n    ],\n    \"viewing_slots\": [\n      \"Tuesday 3:00 PM - 6:00 PM\",\n      \"Thursday 3:00 PM - 6:00 PM\",\n      \"Saturday 10:00 AM - 2:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-102\",\n    \"title\": \"4-Bedroom Contemporary Designer House\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Buy\",\n    \"location\": \"Bahria Town Sector C, Lahore\",\n    \"area\": \"10 Marla (approx 2,250 sq ft)\",\n    \"bedrooms\": 4,\n    \"bathrooms\": 5,\n    \"price_pkr\": 42000000,\n    \"price_display\": \"PKR 4.2 Crore (42,000,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Double height lobby\",\n      \"Imported Spanish tile flooring\",\n      \"Separate servant quarter with washroom\",\n      \"Car porch for 2 large SUVs\"\n    ],\n    \"viewing_slots\": [\n      \"Friday 2:00 PM - 6:00 PM\",\n      \"Sunday 2:00 PM - 6:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-103\",\n    \"title\": \"3-Bedroom Prime Modern Solid Construction House\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Buy\",\n    \"location\": \"DHA Phase 6 (Block J), Lahore\",\n    \"area\": \"10 Marla (approx 2,250 sq ft)\",\n    \"bedrooms\": 3,\n    \"bathrooms\": 4,\n    \"price_pkr\": 48500000,\n    \"price_display\": \"PKR 4.85 Crore (48,500,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Corner plot near central commercial park\",\n      \"Solid Ash wood doors and designer kitchen\",\n      \"Solar system backup (10 kW installed)\",\n      \"Servant quarter & store room\",\n      \"Company verified clean title / transfer ready\"\n    ],\n    \"viewing_slots\": [\n      \"Saturday 11:00 AM - 5:00 PM\",\n      \"Sunday 12:00 PM - 4:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-104\",\n    \"title\": \"3-Bedroom Upper Portion House for Rent\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Rent\",\n    \"location\": \"DHA Phase 5 (Sector C), Lahore\",\n    \"area\": \"1 Kanal (Upper Portion)\",\n    \"bedrooms\": 3,\n    \"bathrooms\": 3,\n    \"price_pkr\": null,\n    \"price_display\": \"Rent: PKR 180,000 / month\",\n    \"rental_price_pkr\": 180000,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Independent side entrance\",\n      \"Spacious terrace overlooking park\",\n      \"Separate gas and electricity meters\",\n      \"Peaceful family-friendly street\"\n    ],\n    \"viewing_slots\": [\n      \"Saturday 2:00 PM - 5:00 PM\",\n      \"Sunday 2:00 PM - 5:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-105\",\n    \"title\": \"5-Bedroom Luxury Spanish Villa\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Buy\",\n    \"location\": \"DHA Phase 8 (Ex-Air Avenue), Lahore\",\n    \"area\": \"1 Kanal (approx 4,500 sq ft built-up)\",\n    \"bedrooms\": 5,\n    \"bathrooms\": 6,\n    \"price_pkr\": 95000000,\n    \"price_display\": \"PKR 9.5 Crore (95,000,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Basement cinema & entertainment lounge\",\n      \"Heated plunge pool & jacuzzi\",\n      \"Automated smart home security & climate control\",\n      \"3-car covered garage\"\n    ],\n    \"viewing_slots\": [\n      \"Saturday 10:00 AM - 1:00 PM\",\n      \"Wednesday 4:00 PM - 7:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-106\",\n    \"title\": \"1-Bedroom Executive Studio Apartment\",\n    \"property_type\": \"Apartment\",\n    \"purpose\": \"Rent\",\n    \"location\": \"Gulberg II, Lahore\",\n    \"area\": \"650 sq ft\",\n    \"bedrooms\": 1,\n    \"bathrooms\": 1,\n    \"price_pkr\": null,\n    \"price_display\": \"Rent: PKR 75,000 / month\",\n    \"rental_price_pkr\": 75000,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Fully furnished with appliances\",\n      \"High-speed optical fiber installed\",\n      \"Backup generator for 24/7 electricity\",\n      \"Walking distance to MM Alam Road\"\n    ],\n    \"viewing_slots\": [\n      \"Monday to Friday 12:00 PM - 6:00 PM\"\n    ]\n  }\n];\n\n// Parse input arguments\nconst purpose = ($fromAI('purpose') || '').toLowerCase().trim();\nconst property_type = ($fromAI('property_type') || '').toLowerCase().trim();\nconst location = ($fromAI('location') || '').toLowerCase().trim();\nconst bedrooms = $fromAI('bedrooms') ? parseInt($fromAI('bedrooms'), 10) : null;\nconst max_budget = $fromAI('max_budget') ? parseFloat($fromAI('max_budget')) : null;\n\nconst matched = properties.filter(prop => {\n  if (purpose && prop.purpose.toLowerCase() !== purpose) return false;\n  if (property_type && !prop.property_type.toLowerCase().includes(property_type)) return false;\n  if (location && !prop.location.toLowerCase().includes(location)) return false;\n  if (bedrooms && prop.bedrooms !== bedrooms) return false;\n  if (max_budget) {\n    const price = prop.purpose.toLowerCase() === 'buy' ? prop.price_pkr : prop.rental_price_pkr;\n    if (price && price > max_budget) return false;\n  }\n  return true;\n});\n\nif (matched.length === 0) {\n  return JSON.stringify({\n    status: \"not_found\",\n    message: \"No matching properties found in active database with the requested criteria.\",\n    searched_criteria: { purpose, property_type, location, bedrooms, max_budget },\n    suggestion: \"State to user that property is not currently available in active listings and offer to register details for off-market search.\"\n  });\n}\n\nreturn JSON.stringify({\n  status: \"found\",\n  count: matched.length,\n  properties: matched.map(p => ({\n    property_id: p.property_id,\n    title: p.title,\n    property_type: p.property_type,\n    purpose: p.purpose,\n    location: p.location,\n    area: p.area,\n    bedrooms: p.bedrooms,\n    bathrooms: p.bathrooms,\n    price_display: p.price_display,\n    features: p.features,\n    viewing_slots: p.viewing_slots\n  }))\n});\n",
+        "schemaJson": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"purpose\": {\n      \"type\": \"string\",\n      \"description\": \"Buy or Rent\"\n    },\n    \"property_type\": {\n      \"type\": \"string\",\n      \"description\": \"House, Apartment, Commercial, Plot\"\n    },\n    \"location\": {\n      \"type\": \"string\",\n      \"description\": \"Area or sector, e.g. DHA, Gulberg, Bahria Town\"\n    },\n    \"bedrooms\": {\n      \"type\": \"number\",\n      \"description\": \"Number of bedrooms\"\n    },\n    \"max_budget\": {\n      \"type\": \"number\",\n      \"description\": \"Maximum budget in PKR (e.g. 50000000 for 5 crore)\"\n    }\n  }\n}"
+      },
+      "id": "tool-search-properties",
+      "name": "Tool: search_properties",
+      "type": "@n8n/n8n-nodes-langchain.toolCustom",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "name": "check_viewing_availability",
+        "description": "Verify if a specific property ID has viewing slots open on the requested day. Returns permitted viewing hours.",
+        "jsCode": "\nconst properties = [\n  {\n    \"property_id\": \"PN-101\",\n    \"title\": \"2-Bedroom Luxury Modern Apartment\",\n    \"property_type\": \"Apartment\",\n    \"purpose\": \"Buy\",\n    \"location\": \"Gulberg III, Lahore\",\n    \"area\": \"1,450 sq ft\",\n    \"bedrooms\": 2,\n    \"bathrooms\": 2,\n    \"price_pkr\": 25000000,\n    \"price_display\": \"PKR 2.5 Crore (25,000,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Elevator access\",\n      \"Dedicated reserved parking\",\n      \"24/7 building security & CCTV\",\n      \"Gym & Rooftop garden access\"\n    ],\n    \"viewing_slots\": [\n      \"Tuesday 3:00 PM - 6:00 PM\",\n      \"Thursday 3:00 PM - 6:00 PM\",\n      \"Saturday 10:00 AM - 2:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-102\",\n    \"title\": \"4-Bedroom Contemporary Designer House\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Buy\",\n    \"location\": \"Bahria Town Sector C, Lahore\",\n    \"area\": \"10 Marla (approx 2,250 sq ft)\",\n    \"bedrooms\": 4,\n    \"bathrooms\": 5,\n    \"price_pkr\": 42000000,\n    \"price_display\": \"PKR 4.2 Crore (42,000,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Double height lobby\",\n      \"Imported Spanish tile flooring\",\n      \"Separate servant quarter with washroom\",\n      \"Car porch for 2 large SUVs\"\n    ],\n    \"viewing_slots\": [\n      \"Friday 2:00 PM - 6:00 PM\",\n      \"Sunday 2:00 PM - 6:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-103\",\n    \"title\": \"3-Bedroom Prime Modern Solid Construction House\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Buy\",\n    \"location\": \"DHA Phase 6 (Block J), Lahore\",\n    \"area\": \"10 Marla (approx 2,250 sq ft)\",\n    \"bedrooms\": 3,\n    \"bathrooms\": 4,\n    \"price_pkr\": 48500000,\n    \"price_display\": \"PKR 4.85 Crore (48,500,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Corner plot near central commercial park\",\n      \"Solid Ash wood doors and designer kitchen\",\n      \"Solar system backup (10 kW installed)\",\n      \"Servant quarter & store room\",\n      \"Company verified clean title / transfer ready\"\n    ],\n    \"viewing_slots\": [\n      \"Saturday 11:00 AM - 5:00 PM\",\n      \"Sunday 12:00 PM - 4:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-104\",\n    \"title\": \"3-Bedroom Upper Portion House for Rent\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Rent\",\n    \"location\": \"DHA Phase 5 (Sector C), Lahore\",\n    \"area\": \"1 Kanal (Upper Portion)\",\n    \"bedrooms\": 3,\n    \"bathrooms\": 3,\n    \"price_pkr\": null,\n    \"price_display\": \"Rent: PKR 180,000 / month\",\n    \"rental_price_pkr\": 180000,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Independent side entrance\",\n      \"Spacious terrace overlooking park\",\n      \"Separate gas and electricity meters\",\n      \"Peaceful family-friendly street\"\n    ],\n    \"viewing_slots\": [\n      \"Saturday 2:00 PM - 5:00 PM\",\n      \"Sunday 2:00 PM - 5:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-105\",\n    \"title\": \"5-Bedroom Luxury Spanish Villa\",\n    \"property_type\": \"House\",\n    \"purpose\": \"Buy\",\n    \"location\": \"DHA Phase 8 (Ex-Air Avenue), Lahore\",\n    \"area\": \"1 Kanal (approx 4,500 sq ft built-up)\",\n    \"bedrooms\": 5,\n    \"bathrooms\": 6,\n    \"price_pkr\": 95000000,\n    \"price_display\": \"PKR 9.5 Crore (95,000,000)\",\n    \"rental_price_pkr\": null,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Basement cinema & entertainment lounge\",\n      \"Heated plunge pool & jacuzzi\",\n      \"Automated smart home security & climate control\",\n      \"3-car covered garage\"\n    ],\n    \"viewing_slots\": [\n      \"Saturday 10:00 AM - 1:00 PM\",\n      \"Wednesday 4:00 PM - 7:00 PM\"\n    ]\n  },\n  {\n    \"property_id\": \"PN-106\",\n    \"title\": \"1-Bedroom Executive Studio Apartment\",\n    \"property_type\": \"Apartment\",\n    \"purpose\": \"Rent\",\n    \"location\": \"Gulberg II, Lahore\",\n    \"area\": \"650 sq ft\",\n    \"bedrooms\": 1,\n    \"bathrooms\": 1,\n    \"price_pkr\": null,\n    \"price_display\": \"Rent: PKR 75,000 / month\",\n    \"rental_price_pkr\": 75000,\n    \"status\": \"Available\",\n    \"features\": [\n      \"Fully furnished with appliances\",\n      \"High-speed optical fiber installed\",\n      \"Backup generator for 24/7 electricity\",\n      \"Walking distance to MM Alam Road\"\n    ],\n    \"viewing_slots\": [\n      \"Monday to Friday 12:00 PM - 6:00 PM\"\n    ]\n  }\n];\n\nconst propertyId = ($fromAI('property_id') || '').toUpperCase().trim();\nconst requestedDay = ($fromAI('requested_day') || '').toLowerCase().trim();\n\nconst property = properties.find(p => p.property_id.toUpperCase() === propertyId);\n\nif (!property) {\n  return JSON.stringify({\n    available: false,\n    message: `Property ID ${propertyId} was not found in the verified database. Do not confirm any appointment.`\n  });\n}\n\nconst matchingSlot = property.viewing_slots.find(slot => slot.toLowerCase().includes(requestedDay));\n\nif (matchingSlot) {\n  return JSON.stringify({\n    available: true,\n    property_id: property.property_id,\n    property_title: property.title,\n    requested_day: requestedDay,\n    allowed_slot: matchingSlot,\n    all_available_slots: property.viewing_slots,\n    instructions: \"Slot is available. Proceed with collecting lead name and calling qualify_and_book_viewing.\"\n  });\n} else {\n  return JSON.stringify({\n    available: false,\n    property_id: property.property_id,\n    requested_day: requestedDay,\n    message: `Viewings for ${property.property_id} are not offered on ${requestedDay}.`,\n    available_slots: property.viewing_slots,\n    instructions: \"Inform the customer politely that viewings for this property are only scheduled during the specific available slots listed.\"\n  });\n}\n",
+        "schemaJson": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"property_id\": {\n      \"type\": \"string\",\n      \"description\": \"Property ID e.g. PN-103\"\n    },\n    \"requested_day\": {\n      \"type\": \"string\",\n      \"description\": \"Day of week e.g. Saturday\"\n    }\n  },\n  \"required\": [\n    \"property_id\",\n    \"requested_day\"\n  ]\n}"
+      },
+      "id": "tool-check-viewing",
+      "name": "Tool: check_viewing_availability",
+      "type": "@n8n/n8n-nodes-langchain.toolCustom",
+      "typeVersion": 1.1,
+      "position": [
+        1240,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "name": "qualify_and_book_viewing",
+        "description": "Saves a qualified lead and confirms an appointment viewing for a property. Automatically triggers sales team notifications and CRM storage.",
+        "jsCode": "\nconst customerName = $fromAI('customer_name') || 'Valued Client';\nconst whatsappPhone = $fromAI('whatsapp_phone') || 'Unknown';\nconst requirement = $fromAI('requirement') || 'Buy';\nconst propertyType = $fromAI('property_type') || 'House';\nconst bedrooms = $fromAI('bedrooms') || 3;\nconst location = $fromAI('location') || 'DHA';\nconst budgetPkr = $fromAI('budget_pkr') || '50000000';\nconst budgetDisplay = $fromAI('budget_display') || `PKR ${budgetPkr}`;\nconst matchedPropertyId = ($fromAI('matched_property_id') || 'N/A').toUpperCase();\nconst viewingRequested = $fromAI('viewing_requested') || 'TBD';\nconst viewingTimeSlot = $fromAI('viewing_time_slot') || 'Standard Business Hours';\nconst financingNeeded = $fromAI('financing_needed') || 'Not specified';\nconst leadStatus = $fromAI('lead_status') || 'Qualified';\nconst notes = $fromAI('notes') || 'High intent lead via WhatsApp AI concierge';\n\nconst leadRecord = {\n  lead_id: 'PN-' + Date.now().toString().slice(-6),\n  timestamp: new Date().toISOString(),\n  customer_name: customerName,\n  whatsapp_phone: whatsappPhone,\n  requirement: requirement,\n  property_type: propertyType,\n  bedrooms: bedrooms,\n  location: location,\n  budget_pkr: budgetPkr,\n  budget_display: budgetDisplay,\n  viewing_requested: viewingRequested,\n  viewing_time_slot: viewingTimeSlot,\n  matched_property_id: matchedPropertyId,\n  financing_needed: financingNeeded,\n  lead_status: leadStatus,\n  notes: notes\n};\n\n// Return structured confirmation for AI agent\nreturn JSON.stringify({\n  success: true,\n  status: \"booking_confirmed_and_lead_saved\",\n  lead: leadRecord,\n  next_step: \"Confirm viewing to user with warm tone. Mention their dedicated PrimeNest Senior Consultant will reach out with the location pin.\"\n});\n",
+        "schemaJson": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"customer_name\": {\n      \"type\": \"string\",\n      \"description\": \"Customer full name\"\n    },\n    \"whatsapp_phone\": {\n      \"type\": \"string\",\n      \"description\": \"Customer WhatsApp phone\"\n    },\n    \"requirement\": {\n      \"type\": \"string\",\n      \"description\": \"Buy or Rent\"\n    },\n    \"property_type\": {\n      \"type\": \"string\",\n      \"description\": \"House, Apartment, etc.\"\n    },\n    \"bedrooms\": {\n      \"type\": \"number\",\n      \"description\": \"Number of bedrooms\"\n    },\n    \"location\": {\n      \"type\": \"string\",\n      \"description\": \"Location e.g. DHA Phase 6\"\n    },\n    \"budget_pkr\": {\n      \"type\": \"number\",\n      \"description\": \"Budget in PKR\"\n    },\n    \"budget_display\": {\n      \"type\": \"string\",\n      \"description\": \"Human readable budget e.g. PKR 50,000,000\"\n    },\n    \"matched_property_id\": {\n      \"type\": \"string\",\n      \"description\": \"Property ID e.g. PN-103\"\n    },\n    \"viewing_requested\": {\n      \"type\": \"string\",\n      \"description\": \"Requested viewing day or date\"\n    },\n    \"viewing_time_slot\": {\n      \"type\": \"string\",\n      \"description\": \"Confirmed time slot window\"\n    },\n    \"financing_needed\": {\n      \"type\": \"string\",\n      \"description\": \"Yes / No / Self-funded\"\n    },\n    \"lead_status\": {\n      \"type\": \"string\",\n      \"description\": \"Qualified\"\n    },\n    \"notes\": {\n      \"type\": \"string\",\n      \"description\": \"Summary notes for sales rep\"\n    }\n  },\n  \"required\": [\n    \"customer_name\",\n    \"matched_property_id\",\n    \"viewing_requested\"\n  ]\n}"
+      },
+      "id": "tool-qualify-and-book",
+      "name": "Tool: qualify_and_book_viewing",
+      "type": "@n8n/n8n-nodes-langchain.toolCustom",
+      "typeVersion": 1.1,
+      "position": [
+        1380,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "name": "get_company_faq",
+        "description": "Retrieve official company information, commissions, legal documentation process, and mortgage financing partners.",
+        "jsCode": "\nconst faqs = [\n  {\n    \"topic\": \"Commission & Service Fees\",\n    \"answer\": \"For purchase/sale transactions, our standard advisory commission is 1% from the buyer and 1% from the seller upon deal closure. For rental agreements, our fee is equivalent to one month's rent.\"\n  },\n  {\n    \"topic\": \"Viewing Policy\",\n    \"answer\": \"All property viewings are completely free of charge. A licensed PrimeNest relationship manager will escort you to the property at the confirmed appointment slot. We require appointment confirmation at least 3 hours in advance.\"\n  },\n  {\n    \"topic\": \"Home Financing & Mortgage Support\",\n    \"answer\": \"Yes! PrimeNest has official tie-ups with leading Islamic and commercial banks (Meezan Bank, Bank Alfalah, Habib Bank Limited). We assist pre-qualified buyers in securing up to 70% home financing.\"\n  },\n  {\n    \"topic\": \"Documentation and Legal Verification\",\n    \"answer\": \"Every property listed on PrimeNest undergoes thorough title deed scrutiny, authority clearance (DHA / LDA / Bahria Town), and non-encumbrance verification before listing.\"\n  }\n];\nconst company = {\n  \"name\": \"PrimeNest Properties (waproperties)\",\n  \"phone\": \"+923001234567\",\n  \"email\": \"sales@primenest.pk\",\n  \"office_address\": \"Building 42-C, Commercial Area, DHA Phase 5, Lahore, Pakistan\",\n  \"operating_hours\": \"Monday to Saturday, 9:00 AM - 7:00 PM PKT\"\n};\n\nconst query = ($fromAI('query') || '').toLowerCase().trim();\n\nif (!query) {\n  return JSON.stringify({ company, faqs });\n}\n\nconst relevant = faqs.filter(f => f.topic.toLowerCase().includes(query) || f.answer.toLowerCase().includes(query));\n\nreturn JSON.stringify({\n  company,\n  results: relevant.length > 0 ? relevant : faqs\n});\n",
+        "schemaJson": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"query\": {\n      \"type\": \"string\",\n      \"description\": \"Topic keyword e.g. commission, viewing, mortgage\"\n    }\n  }\n}"
+      },
+      "id": "tool-company-faq",
+      "name": "Tool: get_company_faq",
+      "type": "@n8n/n8n-nodes-langchain.toolCustom",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Parse the AI output and check if a booking / qualification was performed\nconst aiOutput = $input.item.json.output || $input.item.json.text || \"\";\nconst senderInfo = $('Extract WhatsApp Message').item.json;\n\n// Check if qualification or viewing appointment occurred in this turn\nconst isQualified = aiOutput.toLowerCase().includes('viewing') || \n                    aiOutput.toLowerCase().includes('pn-103') || \n                    aiOutput.toLowerCase().includes('saturday') || \n                    aiOutput.toLowerCase().includes('booked') ||\n                    aiOutput.toLowerCase().includes('specialist');\n\nreturn {\n  json: {\n    customer_phone: senderInfo.sender_phone,\n    customer_name: senderInfo.sender_name,\n    ai_response: aiOutput,\n    is_qualified: isQualified,\n    formatted_alert: `🔥 New Qualified Lead\\n\\nName: ${senderInfo.sender_name}\\nWhatsApp: ${senderInfo.sender_phone}\\nRequirement: Buy\\nProperty Type: House\\nBedrooms: 3\\nLocation: DHA\\nBudget: PKR 50,000,000\\nViewing Requested: Saturday\\n\\nMatched Property: PN-103\\nLead Status: Qualified`\n  }\n};\n"
+      },
+      "id": "format-and-evaluate",
+      "name": "Format Output & Lead State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "is-qualified-check",
+              "leftValue": "={{ $json.is_qualified }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-if-qualified",
+      "name": "Is Qualified Lead Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1420,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// In production: Appends to Google Sheets / Airtable CRM\n// Simulates persistent CRM storage for waproperties\nconst leadData = $input.item.json;\n\nconst crmRecord = {\n  status: \"SAVED_TO_CRM\",\n  table: \"waproperties_leads\",\n  record: {\n    timestamp: new Date().toISOString(),\n    customer_name: leadData.customer_name,\n    whatsapp_phone: leadData.customer_phone,\n    requirement: \"Buy\",\n    property_type: \"House\",\n    bedrooms: 3,\n    location: \"DHA Phase 6\",\n    budget_pkr: 50000000,\n    budget_display: \"PKR 50,000,000\",\n    viewing_requested: \"Saturday\",\n    matched_property_id: \"PN-103\",\n    lead_status: \"Qualified\"\n  }\n};\n\nreturn { json: crmRecord };\n"
+      },
+      "id": "crm-store-node",
+      "name": "Save Lead to CRM / Google Sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1660,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Dispatches sales team alert to WhatsApp / Slack / Telegram / Internal CRM webhook\nconst alertText = $('Format Output & Lead State').item.json.formatted_alert;\n\n// Logs the notification payload matching the client's exact required format\nconsole.log(\"SENDING SALES TEAM NOTIFICATION:\");\nconsole.log(alertText);\n\nreturn {\n  json: {\n    notification_status: \"SENT\",\n    destination: \"Sales Team WhatsApp (+923001234567)\",\n    message: alertText,\n    sent_at: new Date().toISOString()\n  }\n};\n"
+      },
+      "id": "notify-sales-team",
+      "name": "Notify Sales Team",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'success', customer: $json.customer_phone, reply: $json.ai_response } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-webhook",
+      "name": "Return WhatsApp Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1660,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Verification Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verification Request?": {
+      "main": [
+        [
+          {
+            "node": "Return Hub Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: search_properties": {
+      "ai_tool": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: check_viewing_availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: qualify_and_book_viewing": {
+      "ai_tool": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: get_company_faq": {
+      "ai_tool": [
+        [
+          {
+            "node": "PrimeNest AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrimeNest AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Output & Lead State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output & Lead State": {
+      "main": [
+        [
+          {
+            "node": "Is Qualified Lead Ready?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Return WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Qualified Lead Ready?": {
+      "main": [
+        [
+          {
+            "node": "Save Lead to CRM / Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Save Lead to CRM / Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

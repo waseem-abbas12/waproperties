@@ -1,0 +1,174 @@
+{
+  "company": {
+    "name": "PrimeNest Properties (waproperties)",
+    "phone": "+923001234567",
+    "email": "sales@primenest.pk",
+    "office_address": "Building 42-C, Commercial Area, DHA Phase 5, Lahore, Pakistan",
+    "operating_hours": "Monday to Saturday, 9:00 AM - 7:00 PM PKT"
+  },
+  "properties": [
+    {
+      "property_id": "PN-101",
+      "title": "2-Bedroom Luxury Modern Apartment",
+      "property_type": "Apartment",
+      "purpose": "Buy",
+      "location": "Gulberg III, Lahore",
+      "area": "1,450 sq ft",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "price_pkr": 25000000,
+      "price_display": "PKR 2.5 Crore (25,000,000)",
+      "rental_price_pkr": null,
+      "status": "Available",
+      "features": [
+        "Elevator access",
+        "Dedicated reserved parking",
+        "24/7 building security & CCTV",
+        "Gym & Rooftop garden access"
+      ],
+      "viewing_slots": [
+        "Tuesday 3:00 PM - 6:00 PM",
+        "Thursday 3:00 PM - 6:00 PM",
+        "Saturday 10:00 AM - 2:00 PM"
+      ]
+    },
+    {
+      "property_id": "PN-102",
+      "title": "4-Bedroom Contemporary Designer House",
+      "property_type": "House",
+      "purpose": "Buy",
+      "location": "Bahria Town Sector C, Lahore",
+      "area": "10 Marla (approx 2,250 sq ft)",
+      "bedrooms": 4,
+      "bathrooms": 5,
+      "price_pkr": 42000000,
+      "price_display": "PKR 4.2 Crore (42,000,000)",
+      "rental_price_pkr": null,
+      "status": "Available",
+      "features": [
+        "Double height lobby",
+        "Imported Spanish tile flooring",
+        "Separate servant quarter with washroom",
+        "Car porch for 2 large SUVs"
+      ],
+      "viewing_slots": [
+        "Friday 2:00 PM - 6:00 PM",
+        "Sunday 2:00 PM - 6:00 PM"
+      ]
+    },
+    {
+      "property_id": "PN-103",
+      "title": "3-Bedroom Prime Modern Solid Construction House",
+      "property_type": "House",
+      "purpose": "Buy",
+      "location": "DHA Phase 6 (Block J), Lahore",
+      "area": "10 Marla (approx 2,250 sq ft)",
+      "bedrooms": 3,
+      "bathrooms": 4,
+      "price_pkr": 48500000,
+      "price_display": "PKR 4.85 Crore (48,500,000)",
+      "rental_price_pkr": null,
+      "status": "Available",
+      "features": [
+        "Corner plot near central commercial park",
+        "Solid Ash wood doors and designer kitchen",
+        "Solar system backup (10 kW installed)",
+        "Servant quarter & store room",
+        "Company verified clean title / transfer ready"
+      ],
+      "viewing_slots": [
+        "Saturday 11:00 AM - 5:00 PM",
+        "Sunday 12:00 PM - 4:00 PM"
+      ]
+    },
+    {
+      "property_id": "PN-104",
+      "title": "3-Bedroom Upper Portion House for Rent",
+      "property_type": "House",
+      "purpose": "Rent",
+      "location": "DHA Phase 5 (Sector C), Lahore",
+      "area": "1 Kanal (Upper Portion)",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "price_pkr": null,
+      "price_display": "Rent: PKR 180,000 / month",
+      "rental_price_pkr": 180000,
+      "status": "Available",
+      "features": [
+        "Independent side entrance",
+        "Spacious terrace overlooking park",
+        "Separate gas and electricity meters",
+        "Peaceful family-friendly street"
+      ],
+      "viewing_slots": [
+        "Saturday 2:00 PM - 5:00 PM",
+        "Sunday 2:00 PM - 5:00 PM"
+      ]
+    },
+    {
+      "property_id": "PN-105",
+      "title": "5-Bedroom Luxury Spanish Villa",
+      "property_type": "House",
+      "purpose": "Buy",
+      "location": "DHA Phase 8 (Ex-Air Avenue), Lahore",
+      "area": "1 Kanal (approx 4,500 sq ft built-up)",
+      "bedrooms": 5,
+      "bathrooms": 6,
+      "price_pkr": 95000000,
+      "price_display": "PKR 9.5 Crore (95,000,000)",
+      "rental_price_pkr": null,
+      "status": "Available",
+      "features": [
+        "Basement cinema & entertainment lounge",
+        "Heated plunge pool & jacuzzi",
+        "Automated smart home security & climate control",
+        "3-car covered garage"
+      ],
+      "viewing_slots": [
+        "Saturday 10:00 AM - 1:00 PM",
+        "Wednesday 4:00 PM - 7:00 PM"
+      ]
+    },
+    {
+      "property_id": "PN-106",
+      "title": "1-Bedroom Executive Studio Apartment",
+      "property_type": "Apartment",
+      "purpose": "Rent",
+      "location": "Gulberg II, Lahore",
+      "area": "650 sq ft",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "price_pkr": null,
+      "price_display": "Rent: PKR 75,000 / month",
+      "rental_price_pkr": 75000,
+      "status": "Available",
+      "features": [
+        "Fully furnished with appliances",
+        "High-speed optical fiber installed",
+        "Backup generator for 24/7 electricity",
+        "Walking distance to MM Alam Road"
+      ],
+      "viewing_slots": [
+        "Monday to Friday 12:00 PM - 6:00 PM"
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "topic": "Commission & Service Fees",
+      "answer": "For purchase/sale transactions, our standard advisory commission is 1% from the buyer and 1% from the seller upon deal closure. For rental agreements, our fee is equivalent to one month's rent."
+    },
+    {
+      "topic": "Viewing Policy",
+      "answer": "All property viewings are completely free of charge. A licensed PrimeNest relationship manager will escort you to the property at the confirmed appointment slot. We require appointment confirmation at least 3 hours in advance."
+    },
+    {
+      "topic": "Home Financing & Mortgage Support",
+      "answer": "Yes! PrimeNest has official tie-ups with leading Islamic and commercial banks (Meezan Bank, Bank Alfalah, Habib Bank Limited). We assist pre-qualified buyers in securing up to 70% home financing."
+    },
+    {
+      "topic": "Documentation and Legal Verification",
+      "answer": "Every property listed on PrimeNest undergoes thorough title deed scrutiny, authority clearance (DHA / LDA / Bahria Town), and non-encumbrance verification before listing."
+    }
+  ]
+}

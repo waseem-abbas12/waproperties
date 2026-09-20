@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "name": "waproperties",
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/webhook",
+      "dest": "/api/webhook.js"
+    },
+    {
+      "src": "/api/chat",
+      "dest": "/api/chat.js"
+    },
+    {
+      "src": "/api/properties",
+      "dest": "/api/properties.js"
+    },
+    {
+      "src": "/api/leads",
+      "dest": "/api/leads.js"
+    },
+    {
+      "src": "/waproperties_workflow.json",
+      "dest": "/waproperties_workflow.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
