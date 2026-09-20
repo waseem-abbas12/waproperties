@@ -7,7 +7,42 @@ const dataset = JSON.parse(fs.readFileSync(datasetPath, 'utf-8'));
 const properties = dataset.properties;
 const faqs = dataset.faqs;
 
-// Helper: Call OpenAI if user provided an API key in request or env
+// Helper: Parse budget from text
+function parseBudgetFromText(text) {
+  const t = text.toLowerCase();
+
+  // e.g. "5 crore", "4.85 cr", "5crore", "5 cr", "5 karor"
+  const croreMatch = t.match(/(\d+(\.\d+)?)\s*(crore|cr|karor)/);
+  if (croreMatch) {
+    const val = parseFloat(croreMatch[1]);
+    return { pkr: val * 10000000, display: `${val} Crore (PKR ${(val * 10000000).toLocaleString()})` };
+  }
+
+  // e.g. "30 lakh", "50 lac", "80 lakh", "30lakh"
+  const lakhMatch = t.match(/(\d+(\.\d+)?)\s*(lakh|lac|lacs)/);
+  if (lakhMatch) {
+    const val = parseFloat(lakhMatch[1]);
+    return { pkr: val * 100000, display: `${val} Lakh (PKR ${(val * 100000).toLocaleString()})` };
+  }
+
+  // e.g. "50 million"
+  const millionMatch = t.match(/(\d+(\.\d+)?)\s*(million|m\b)/);
+  if (millionMatch) {
+    const val = parseFloat(millionMatch[1]);
+    return { pkr: val * 1000000, display: `${val} Million (PKR ${(val * 1000000).toLocaleString()})` };
+  }
+
+  // Raw large numbers (e.g. 50000000, 3000000)
+  const numMatch = t.match(/\b(\d{6,9})\b/);
+  if (numMatch) {
+    const val = parseFloat(numMatch[1]);
+    return { pkr: val, display: `PKR ${val.toLocaleString()}` };
+  }
+
+  return null;
+}
+
+// Helper: Call OpenAI if user provided an API key
 async function callOpenAI(apiKey, systemPrompt, messages) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
@@ -68,14 +103,14 @@ module.exports = async (req, res) => {
   } = req.body || {};
 
   const query = message.toLowerCase().trim();
-  const fullContext = history.map(h => (h.text || '').toLowerCase()).join(' ') + ' ' + query;
+  const fullContext = (history.map(h => h.text || '').join(' ') + ' ' + query).toLowerCase();
 
-  // 1. If OpenAI API Key is provided, use GPT-4o with full prompt and property context
+  // 1. If OpenAI API Key is provided, use GPT-4o
   if (apiKey && apiKey.startsWith('sk-')) {
     try {
       const systemPrompt = `You are PrimeNest AI, the official intelligent real estate concierge for PrimeNest Properties (waproperties) on WhatsApp.
-You fluently understand and speak English, Roman Urdu (Urdu written in Latin alphabet), and Urdu.
-Respond in the exact same language/style the user addresses you with (if they speak Roman Urdu, reply in natural, courteous Roman Urdu with Pakistani real estate terms like crore, lakh, marla, kanal).
+You fluently understand English, Roman Urdu (Urdu written in Latin alphabet), and Urdu.
+Respond in the exact same language/style the user addresses you with (if they speak Roman Urdu, reply in natural, courteous Roman Urdu).
 
 VERIFIED PROPERTIES DATABASE:
 ${JSON.stringify(properties, null, 2)}
@@ -84,11 +119,11 @@ COMPANY FAQS & POLICIES:
 ${JSON.stringify(faqs, null, 2)}
 
 STRICT RULES:
-1. Never fabricate properties or viewing slots. Only mention verified properties from the database.
-2. DHA 3-Bed House is PN-103 (Price: PKR 4.85 Crore, Location: DHA Phase 6, Viewing: Saturday 11am-5pm, Sunday 12pm-4pm).
-3. If asking for unrealistic or unlisted properties, state that it's not currently available.
-4. When customer confirms viewing for Saturday, confirm the slot and state that our Senior Property Specialist will reach out on WhatsApp with the location pin.
-5. Keep WhatsApp replies well formatted, warm, executive, and concise.`;
+1. Never fabricate properties or viewing slots.
+2. If user budget is lower than any available property (e.g. 30 lakh, where lowest buy is 2.5 crore), CLEARLY state that no property exists in that budget in active listings! Do not show a 5 crore house for a 30 lakh query!
+3. DHA 3-Bed House is PN-103 (Price: PKR 4.85 Crore, Location: DHA Phase 6, Viewing: Saturday 11am-5pm, Sunday 12pm-4pm).
+4. If asking for unrealistic or unlisted properties, state that it's not currently available.
+5. When customer confirms viewing for Saturday, confirm the slot and state that our Senior Property Specialist will reach out on WhatsApp with the location pin.`;
 
       const formattedMessages = history.map(h => ({
         role: h.sender === 'user' ? 'user' : 'assistant',
@@ -128,15 +163,15 @@ STRICT RULES:
     }
   }
 
-  // 2. Built-in Bilingual (Roman Urdu + English) Semantic Real Estate Engine
+  // 2. Built-in Bilingual Semantic Real Estate Engine
   let toolCalled = null;
   let reply = '';
   let salesAlert = null;
   let qualifiedLead = null;
 
-  const isRomanUrdu = query.match(/\b(mujhe|chahiye|mera|meri|hai|hain|kya|batao|lena|dekhna|chahta|karwa|salam|kese|bhai|kitna|hoga|shukriya|acha|theek|pehla|hafta|itwar|jumma|kamray|makan|ghar)\b/i);
+  const isRomanUrdu = query.match(/\b(mujhe|chahiye|mera|meri|hai|hain|kya|batao|lena|dekhna|chahta|karwa|salam|kese|bhai|kitna|hoga|shukriya|acha|theek|pehla|hafta|itwar|jumma|kamray|makan|ghar|me|mein|ya|bhi)\b/i);
 
-  // Intent A: Anti-Hallucination & Non-existent listings (Mars, castle, qila, 10 bedroom)
+  // Intent A: Anti-Hallucination & Non-existent listings (Mars, chand, castle, qila, 10 bedroom)
   if (query.match(/\b(mars|chand|castle|qila|island|10 bedroom|10 bed)\b/i)) {
     toolCalled = 'search_properties';
     if (isRomanUrdu) {
@@ -146,7 +181,51 @@ STRICT RULES:
     }
   }
 
-  // Intent B: Viewing / Appointment booking (Saturday, weekend, visit, appointment, dekhna hai)
+  // Intent B: Specific Budget Inquiry (e.g. "30 lakh me ghr h", "5 crore me ghr h", "4 crore", "50 lakh")
+  else if (parseBudgetFromText(query)) {
+    toolCalled = 'search_properties';
+    const parsedBudget = parseBudgetFromText(query);
+    const budgetPkr = parsedBudget.pkr;
+
+    // Detect user preference for type and location
+    const wantsHouse = fullContext.match(/\b(ghar|makan|house|bangla|kothi)\b/i);
+    const wantsApartment = fullContext.match(/\b(apartment|flat|studio)\b/i);
+    const inDHA = fullContext.match(/\b(dha)\b/i);
+    const inGulberg = fullContext.match(/\b(gulberg)\b/i);
+
+    // Filter properties that are FOR SALE and within budget
+    let matchedBuy = properties.filter(p => p.purpose.toLowerCase() === 'buy' && p.price_pkr <= budgetPkr);
+
+    if (wantsHouse) {
+      matchedBuy = matchedBuy.filter(p => p.property_type.toLowerCase() === 'house');
+    } else if (wantsApartment) {
+      matchedBuy = matchedBuy.filter(p => p.property_type.toLowerCase() === 'apartment');
+    }
+
+    if (inDHA) {
+      const dhaMatch = matchedBuy.filter(p => p.location.toLowerCase().includes('dha'));
+      if (dhaMatch.length > 0) matchedBuy = dhaMatch;
+    }
+
+    if (matchedBuy.length > 0) {
+      // Pick the best match (closest to budget or PN-103 if DHA house)
+      const topProp = matchedBuy.find(p => p.property_id === 'PN-103') || matchedBuy[0];
+      if (isRomanUrdu) {
+        reply = `Zabardast! Aapke **${parsedBudget.display}** budget ke mutabiq hamare paas yeh verified listing mojood hai:\n\n🏡 **${topProp.property_id}: ${topProp.title}**\n• **Location:** ${topProp.location}\n• **Qeemat:** ${topProp.price_display}\n• **Khasoosiyaat:** ${topProp.features.slice(0, 3).join(', ')}.\n\nKya aap is property ki viewing schedule karna chahenge?`;
+      } else {
+        reply = `Excellent! Based on your budget of **${parsedBudget.display}**, I found this verified match:\n\n🏡 **${topProp.property_id}: ${topProp.title}**\n• **Location:** ${topProp.location}\n• **Price:** ${topProp.price_display}\n• **Highlights:** ${topProp.features.slice(0, 3).join(', ')}.\n\nWould you like to schedule an in-person viewing?`;
+      }
+    } else {
+      // Budget is too low for buy (e.g. 30 Lakh = PKR 3,000,000, but lowest house is 4.2 Crore)
+      if (isRomanUrdu) {
+        reply = `Maine hamara verified database check kiya hai, **${parsedBudget.display}** mein hamari active listings mein koi ghar ya property for sale available nahi hai.\n\nℹ️ **Hamare Active Rates:**\n• **Houses (DHA / Bahria):** PKR 4.2 Crore se PKR 4.85 Crore se shuru hote hain.\n• **Apartments (Gulberg):** PKR 2.5 Crore se shuru hote hain.\n• **Rental Houses/Portions (DHA):** PKR 1.8 Lakh (180,000) mahana par available hain.\n\nKya aap **Rent** ke options dekhna chahenge ya aap apna budget revise karna chahte hain?`;
+      } else {
+        reply = `I searched our verified database, and there are currently no properties for sale within **${parsedBudget.display}**.\n\nℹ️ **Available Pricing:**\n• **Houses (DHA / Bahria):** Starting from PKR 4.2 Crore to PKR 4.85 Crore.\n• **Apartments (Gulberg):** Starting from PKR 2.5 Crore.\n• **Rental Options:** Available from PKR 75,000 to PKR 180,000/month.\n\nWould you like to explore rental properties instead, or register your budget for off-market options?`;
+      }
+    }
+  }
+
+  // Intent C: Viewing / Appointment booking (Saturday, weekend, visit, appointment, dekhna hai)
   else if (query.match(/\b(saturday|hafta|hafte|visit|view|viewing|appointment|dekhna|dekhni|chakkar|milna)\b/i) || 
           (query.includes('dekh') && (query.includes('ghar') || query.includes('makan') || query.includes('house')))) {
     
@@ -179,16 +258,6 @@ STRICT RULES:
       } else {
         reply = `For **PN-103**, viewings are conducted on **Saturday (11:00 AM - 5:00 PM)** and **Sunday (12:00 PM - 4:00 PM)**. Which day suits your schedule best?`;
       }
-    }
-  }
-
-  // Intent C: Budget stated (5 crore, 5 cr, crore, lakh, budget)
-  else if (query.match(/\b(5 crore|50 lakh|crore|lakh|budget|pkr|million)\b/i) || query.match(/\b(5 cr|4 crore|5cr)\b/i)) {
-    toolCalled = 'search_properties';
-    if (isRomanUrdu) {
-      reply = `Zabardast! Aapke **5 Crore** budget ke mutabiq hamare paas DHA mein yeh shandar verified listing mojood hai:\n\n🏡 **PN-103: 3-Bedroom Modern Designer House**\n• **Location:** DHA Phase 6 (Block J), Lahore\n• **Qeemat:** PKR 4.85 Crore (aapke 5 Crore budget ke andar)\n• **Khasoosiyaat:** Corner plot, solid Ash wood construction, 10 kW ka solar system installed, servant quarter, aur 100% clean title transfer-ready.\n\nKya aap is ghar ki physically viewing schedule karna chahenge?`;
-    } else {
-      reply = `Pleasure to assist you, Mr. Ali Khan! ✨\n\nBased on your 5 Crore budget, I found this verified prime listing in DHA:\n\n🏡 **PN-103: 3-Bedroom Modern House**\n• **Location:** DHA Phase 6 (Block J), Lahore\n• **Price:** PKR 4.85 Crore (within your 5 Crore budget)\n• **Highlights:** Corner plot, solid Ash wood doors, 10 kW solar backup installed, separate servant quarter, 100% verified clean title.\n\nWould you like to schedule an in-person viewing, or explore additional details?`;
     }
   }
 
@@ -231,7 +300,7 @@ STRICT RULES:
     }
   }
 
-  // Fallback with intelligent context handling
+  // Fallback
   else {
     if (isRomanUrdu) {
       reply = `Ji bilkul! PrimeNest Properties par main aapki madad ke liye hazir hoon. 🏡\n\nAap mujhe batayein:\n• Aapko **Buy** karna hai ya **Rent**?\n• Kis area mein (maslan **DHA, Gulberg, Bahria Town**)?\n• Kitne bedrooms aur aapka **budget** kya hai?\n\nMain foran verified database se matching properties nikal kar deta hoon!`;
